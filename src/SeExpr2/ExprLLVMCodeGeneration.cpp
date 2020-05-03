@@ -22,6 +22,7 @@
 #include "ExprNode.h"
 #include "ExprFunc.h"
 #include "VarBlock.h"
+#include "StringUtils.h"
 #include <array>
 using namespace llvm;
 using namespace SeExpr2;
@@ -65,10 +66,10 @@ bool isTakeOnlyDoubleArg(ExprFuncStandard::FuncType seFuncType) {
 FunctionType *getSeExprFuncStandardLLVMType(ExprFuncStandard::FuncType sft, LLVMContext &llvmContext) {
     assert(sft != ExprFuncStandard::NONE);
 
-    Type *intType = TypeBuilder<int, false>::get(llvmContext);
-    Type *doubleType = TypeBuilder<double, false>::get(llvmContext);
-    Type *doublePtrType = TypeBuilder<double *, false>::get(llvmContext);
-    Type *voidType = TypeBuilder<void, false>::get(llvmContext);
+    Type *intType = Type::getInt32Ty(llvmContext);
+    Type *doubleType = Type::getDoubleTy(llvmContext);
+    Type *doublePtrType = PointerType::getUnqual(Type::getDoubleTy(llvmContext));
+    Type *voidType = Type::getVoidTy(llvmContext);
     FunctionType *FT = 0;
 
     if (sft <= ExprFuncStandard::FUNC6) {
@@ -1010,7 +1011,9 @@ LLVM_VALUE ExprPrototypeNode::codegen(LLVM_BUILDER Builder) LLVM_BODY {
     return F;
 }
 
-LLVM_VALUE ExprStrNode::codegen(LLVM_BUILDER Builder) LLVM_BODY { return Builder.CreateGlobalStringPtr(_str); }
+LLVM_VALUE ExprStrNode::codegen(LLVM_BUILDER Builder) LLVM_BODY {
+    return Builder.CreateGlobalStringPtr(unescapeString(_str));
+}
 
 LLVM_VALUE ExprSubscriptNode::codegen(LLVM_BUILDER Builder) LLVM_BODY {
     LLVM_VALUE op1 = child(0)->codegen(Builder);

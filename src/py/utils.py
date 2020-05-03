@@ -72,7 +72,7 @@ class Edits:
             if node.type==SeExprPy.ASTType.Num: edits.addEdit(node,node.value*2)
         SeExprPy.traverseCallback(ast.root(),doubleAllNumberLiterals)
         editedString=edits.makeNewString()
-        print editedString # will be 6.0+8.0
+        print(editedString)  # will be 6.0+8.0
     """
     def __init__(self,str):
         "The string to be edited is stored"
@@ -94,6 +94,7 @@ class Edits:
             s=s[:r[0]]+self.formatNewValue(newVal)+s[r[1]:]
         return s
 
+
 def printTreeHelper(x,indent,mask,sorig):
     "Helper for printTree() (internal function)"
     children=x.children()
@@ -114,6 +115,7 @@ def printTreeHelper(x,indent,mask,sorig):
         isEnd=(i==len(children)-1)
         newMask=mask | (isEnd << indent)
         printTreeHelper(child,indent+1,newMask,sorig)
+
 def printTree(x,sorig):
     "Print the parse tree of an ASTHandle"
     printTreeHelper(x.root(),1,1,sorig)
@@ -142,22 +144,22 @@ if __name__=="__main__":
                     edits.addEdit(childs[0],"testo/%s"%childs[0].value) # add to the edit structure
     traverseCallback(expr.root(),editAllMapsToHavePrefix)
     printTree(expr,s)
-    print edits.makeNewString()
+    print(edits.makeNewString())
     
-    print "--All Function calls----------------------------"
+    print("--All Function calls----------------------------")
     def printAllFunctionsAndTheirArguments(node,childs):
         if node.type==ASTType.Call:
-            print "%s"%node.value
+            print("%s"%node.value)
             for child in childs:
                 if child.type==ASTType.Num:
                     edits.addEdit(child,child.value*4)
-                print "  %30r %r"%(child.type,child.value)
+                print("  %30r %r"%(child.type,child.value))
     traverseCallback(expr.root(),printAllFunctionsAndTheirArguments)
 
-    print "--All Variables----------------------------"
+    print("--All Variables----------------------------")
     def printAllVariableReferences(node,childs):
         if node.type==ASTType.Var:
-            print "%s"%node.value
+            print("%s"%node.value)
         elif node.type==ASTType.Assign:
-            print "assign of %s"%node.value
+            print("assign of %s"%node.value)
     traverseCallback(expr.root(),printAllVariableReferences)

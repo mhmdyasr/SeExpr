@@ -33,6 +33,7 @@ endif
 CMAKE_FILES += Makefile
 CMAKE_FILES += $(wildcard CMakeLists.txt */*/CMakeLists.txt)
 
+export ARGS
 export CXX
 export DESTDIR
 export prefix
@@ -43,7 +44,7 @@ all: $(BUILD)
 install: all
 	$(MAKE) -C $(BUILD) $@
 
-test: all
+test: install
 	$(MAKE) -C $(BUILD) $@
 
 clean:

@@ -13,8 +13,7 @@
 # You may obtain a copy of the License at
 # http://www.apache.org/licenses/LICENSE-2.0
 
-## CMake compatibility issues: don't modify this, please!
-cmake_minimum_required(VERSION 2.4.6)
+cmake_minimum_required(VERSION 3.8.0)
 
 ## project name & version
 project(SeExpr2)
@@ -26,19 +25,8 @@ set(${PROJECT_NAME}_MINOR_VERSION 0)
 
 enable_testing()
 
-mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY)
-
-## allow more human readable "if then else" constructs
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
-## Use verbose make file
-set(CMAKE_VERBOSE_MAKEFILE true)
-
-## policies
-if(COMMAND cmake_policy)
-    cmake_policy(SET CMP0003 NEW)
-    cmake_policy(SET CMP0005 NEW)
-endif()
+## Silence installation messages
+set(CMAKE_INSTALL_MESSAGE LAZY)
 
 # macros
 include(GNUInstallDirs)
@@ -81,7 +69,10 @@ set(INCLUDE_DIR "include/${PROJECT_NAME}")
 # Configuration options
 # TODO: find GTEST and boost and python the proper ways
 set(BOOST_DIR /usr CACHE PATH "where boost is located")
+
 find_package(PythonInterp) # provides Python version check
+find_package(PythonLibs)
+
 if(PYTHON_VERSION_MAJOR LESS 3)
     set(BOOST_PYTHON_LIBNAME boost_python CACHE STRING "what library name for boost python")
 else()
@@ -91,12 +82,15 @@ else()
 endif()
 
 set(GTEST_DIR "" CACHE STRING "Where to find GTEST")
-option(ENABLE_LLVM_BACKEND "Whether to build with LLVM backend" ON)
-option(USE_PYTHON "Whether to compile python libraries" ON)
-option(BUILD_UTILS "Whether to build the utilities" ON)
-option(BUILD_DEMOS "Whether to build the demos" ON)
-option(BUILD_DOC "Whether to build the documentation" ON)
-option(BUILD_TESTS "Whether to build the tests" ON)
+option(ENABLE_LLVM_BACKEND "Whether to build with LLVM backend" TRUE)
+option(ENABLE_QT5 "Whether to use Qt5" TRUE)
+option(ENABLE_SSE4 "Whether to use SSE4" TRUE)
+option(USE_PYTHON "Whether to compile python libraries" TRUE)
+option(BUILD_UTILS "Whether to build the utilities" TRUE)
+option(BUILD_DEMOS "Whether to build the demos" TRUE)
+option(BUILD_DOC "Whether to build the documentation" TRUE)
+option(BUILD_TESTS "Whether to build the tests" TRUE)
+option(ENABLE_SLOW_TESTS "Whether to enable slow tests" FALSE)
 
 set(LLVM_LIB "")
 if (ENABLE_LLVM_BACKEND)
@@ -180,7 +174,10 @@ else()
     add_definitions(-Wall -Wextra -Wno-unused-parameter)
     add_definitions(-pthread)
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g -std=c++11 -msse4.1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -g -std=c++11")
+    if (ENABLE_SSE4)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+    endif()
     if (NOT APPLE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -rdynamic")
     else()
@@ -208,7 +205,7 @@ if (ENABLE_QT5)
     endif()
 else()
     find_package(Qt4 COMPONENTS QtCore QtGui QtOpenGL)
-    if (QT4_FOUND)
+    if (Qt4_FOUND)
         message(STATUS "Qt4 Enabled")
         message(STATUS "QT_INCLUDE_DIR = ${QT_INCLUDE_DIR}")
         include_directories(${QT_INCLUDE_DIR}

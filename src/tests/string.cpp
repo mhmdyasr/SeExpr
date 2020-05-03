@@ -98,6 +98,13 @@ TEST(StringTests, Constant) {
     EXPECT_TRUE(expr.returnType().isString() == true);
     EXPECT_TRUE(expr.isConstant() == true);
     EXPECT_STREQ(expr.evalStr(), "hello world !");
+
+    // check that strings are correctly unescaped
+    StringExpression expr7("\"hello\\\\\\t\\n\\\"world\\\"\"");
+    EXPECT_TRUE(expr7.isValid() == true);
+    EXPECT_TRUE(expr7.returnType().isString() == true);
+    EXPECT_TRUE(expr7.isConstant() == true);
+    EXPECT_STREQ(expr7.evalStr(), "hello\\\t\n\"world\"");
 }
 
 TEST(StringTests, Variable) {
@@ -115,6 +122,12 @@ TEST(StringTests, FunctionConst) {
     EXPECT_TRUE(expr.returnType().isString() == true);
     EXPECT_TRUE(expr.isConstant() == true);
     EXPECT_STREQ(expr.evalStr(), "/home/foo/some/relative/path");
+
+    StringExpression expr2("sprintf(\"%04d\", 42)");
+    EXPECT_TRUE(expr2.isValid() == true);
+    EXPECT_TRUE(expr2.returnType().isString() == true);
+    EXPECT_TRUE(expr2.isConstant() == true);
+    EXPECT_STREQ(expr2.evalStr(), "0042");
 }
 
 TEST(StringTests, FunctionVarying) {
@@ -152,4 +165,16 @@ TEST(StringTests, BinaryOp) {
     EXPECT_TRUE(expr4.returnType().isString() == true);
     EXPECT_TRUE(expr4.isConstant() == false);
     EXPECT_STREQ(expr4.evalStr(), "a/b/c/d");
+
+    StringExpression expr5("v = 'o' + 'k';\nif ('fo' + 'o' != 'foo') {\n    v = 'error';\n}\nv");
+    EXPECT_TRUE(expr5.isValid() == true);
+    EXPECT_TRUE(expr5.returnType().isString() == true);
+    EXPECT_TRUE(expr5.isConstant() == true);
+    EXPECT_STREQ(expr5.evalStr(), "ok");
+
+    StringExpression expr6("v = 'err' + 'or';\nif ('fo' + 'o' == 'foo') {\n    v = 'ok';\n}\nv");
+    EXPECT_TRUE(expr6.isValid() == true);
+    EXPECT_TRUE(expr6.returnType().isString() == true);
+    EXPECT_TRUE(expr6.isConstant() == true);
+    EXPECT_STREQ(expr6.evalStr(), "ok");
 }
